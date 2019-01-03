@@ -21,9 +21,9 @@ function initialize() {
      */
     function createWindow() {
         const windowOptions = {
-            width: 1080,
-            minWidth: 680,
-            height: 840,
+            width: 400,
+            minWidth: 400,
+            height: 700,
             title: app.getName(),
             webPreferences: { webSecurity: false }//加上这个就可以获取到了本地的图片
         };
@@ -40,8 +40,8 @@ function initialize() {
             mainWindow.loadURL('http://localhost:3000/');
 
             // 打开开发者工具
-            mainWindow.webContents.openDevTools();
-            mainWindow.maximize();
+            // mainWindow.webContents.openDevTools();
+            // mainWindow.maximize();
             require('devtron').install();
         } else {
             // 加载应用 构建之后的路径

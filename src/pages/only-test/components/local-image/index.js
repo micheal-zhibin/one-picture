@@ -19,15 +19,15 @@ class Workspace extends Component {
     }
 
     componentDidMount() {
-        const nativeImage = window.require('electron').nativeImage;
+        // const nativeImage = window.require('electron').nativeImage;
 
-        // let image = nativeImage.createFromPath('D:\\test.jpg');
-        // let image = nativeImage.createFromPath('/test.jpg');
-        console.log(image);
+        // // let image = nativeImage.createFromPath('D:\\test.jpg');
+        // // let image = nativeImage.createFromPath('/test.jpg');
+        // console.log(image);
 
-        this.setState({
-            showImg: image.toDataURL()
-        });
+        // this.setState({
+        //     showImg: image.toDataURL()
+        // });
     }
 
     render() {
