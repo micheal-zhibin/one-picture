@@ -1,4 +1,4 @@
-import { PROJECT_REQUEST, PROJECT_REQUEST_FAIL, PROJECT_REQUEST_SUCCESS } from './action';
+import { PROJECT_REQUEST, PROJECT_REQUEST_FAIL, PROJECT_REQUEST_SUCCESS, ANIMATION_REQUEST, ANIMATION_REQUEST_SUCCESS, ANIMATION_REQUEST_FAIL } from './action';
 
 const initialState = {
     isLoaded: false,
@@ -28,6 +28,28 @@ function mockerInfo(state = initialState, action) {
             break;
 
         case PROJECT_REQUEST_FAIL:
+            update = {
+                isLoaded: true,
+                isSuccess: false
+            };
+            break;
+        case ANIMATION_REQUEST:
+            update = {
+                isLoaded: false,
+                isSuccess: false
+            };
+            break;
+
+        case ANIMATION_REQUEST_SUCCESS:
+            update = {
+                isLoaded: true,
+                isSuccess: true,
+                data: data.result
+            };
+
+            break;
+
+        case ANIMATION_REQUEST_FAIL:
             update = {
                 isLoaded: true,
                 isSuccess: false

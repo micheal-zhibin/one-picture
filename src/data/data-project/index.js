@@ -1,5 +1,5 @@
 import reducer from './reducer';
 
-export { loadProject } from './action';
+export { loadProject, loadAnimation } from './action';
 
 export const projectInfo = reducer;

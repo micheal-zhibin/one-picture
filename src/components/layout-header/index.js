@@ -54,6 +54,10 @@ class LayoutHeader extends Component {
                         <NavLink to={`/home`} isActive={this.handleIsActive}>首页</NavLink>
                     </Menu.Item>
 
+                    <Menu.Item key="demolottie">
+                        <NavLink to={`/demo-lottie`} isActive={this.handleIsActive}>demo-lottie</NavLink>
+                    </Menu.Item>
+
                     <Menu.Item key="workspace">
                         <NavLink to={`/workspace`} isActive={this.handleIsActive}>工作台</NavLink>
                     </Menu.Item>
