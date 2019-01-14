@@ -19,6 +19,7 @@ while(true) {
         break;
     }
 }
+let blobContent = '';
 
 class RootComponent extends Component {
     constructor(props, context) {
@@ -139,7 +140,8 @@ class RootComponent extends Component {
             prerender: true,
             autoplay: true,
             animationData: animateData,
-            blobSrc: blobSrc
+            blobSrc: blobSrc,
+            blobContent: blobContent
         };
         this.anim = lottie.loadAnimation(animData);
         this.anim.addEventListener('DOMLoaded', () => {
@@ -166,8 +168,10 @@ class RootComponent extends Component {
             alert(`已经保存到${nextProps.data.projectFolder}`)
         }
         if (nextProps.data.animationData !== this.props.data.animationData) {
-            orignalanimateData = JSON.stringify(nextProps.data.animationData);
+            orignalanimateData = JSON.parse(nextProps.data.animationData);
             animateData = JSON.parse(JSON.stringify(orignalanimateData));
+            blobContent = nextProps.data.imgblob;
+            blobSrc = [];
             this.initAnimation(animateData);
         }
     }

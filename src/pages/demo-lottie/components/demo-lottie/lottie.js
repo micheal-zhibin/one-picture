@@ -4322,6 +4322,73 @@ var ImagePreloader = (function(){
         })
     }
 
+    function loadBlobContentAssets(blobContent, assets, cb) {
+        var _this = this;
+        this.imagesLoadedCb = cb;
+        var i, len = assets.length;
+        for (i = 0; i < len; i += 1) {
+            if(!assets[i].layers){
+                _this.totalImages += 1;
+            }
+        }
+        // 合并两个 arraybuffer
+        function appendBuffer(buffer1, buffer2) {
+            var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+            tmp.set(new Uint8Array(buffer1), 0);
+            tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+            return tmp.buffer;
+        };
+        // 将 arraybuffer 转换为 string
+        function ab2str(buf) {
+            return String.fromCharCode.apply(null, new Uint8Array(buf));
+        }
+
+        if (!blobContent) {
+            return false;
+        }
+        var blobData = new ArrayBuffer();
+        blobData = appendBuffer(blobData, blobContent);
+        var offset = 0;
+        // 获取头部长度
+        var header = blobData.slice(offset, 4);
+        offset += 4;
+        // 获取头部信息
+        var metaSize = new Int32Array(blobData.slice(0, 4))[0]
+        var metaByte = blobData.slice(offset, offset + metaSize);
+        offset += metaSize;
+        var metaList = JSON.parse(ab2str(metaByte))
+        _this._taskCount = metaList.length;
+        _this._finishCount = 0;
+        var that = _this;
+        // 根据头部信息进行图片加载
+        for (var i = 0; i < metaList.length; i++) {
+            var meta = metaList[i];
+            var start = offset + meta.slices[0];
+            var end = offset + meta.slices[1];
+            var byte = new Uint8Array(blobData.slice(start, end));
+            var blob = new Blob([byte], {type: 'image/png'});
+            var url = URL.createObjectURL(blob);
+            var image = document.createElement("img");
+            image._isRetry = false;
+            image.onload = that._imageLoaded.bind(that);
+            image.onerror = function (e) {
+                if (!image._isRetry) {
+                    image.src = url;
+                    image._isRetry = true;
+                } else {
+                    console.error(e);
+                }
+            };
+            image.crossOrigin = "anonymous";
+            image.src = url;
+            var ob = {
+                img: image,
+                assetData: assets[i]
+            }
+            that.images.push(ob);
+        }
+    }
+
     function setPath(path){
         this.path = path || '';
     }
@@ -4356,6 +4423,7 @@ var ImagePreloader = (function(){
     return function ImagePreloader(){
         this.loadAssets = loadAssets;
         this.loadBlobAssets = loadBlobAssets;
+        this.loadBlobContentAssets = loadBlobContentAssets;
         this.setAssetsPath = setAssetsPath;
         this.setPath = setPath;
         this.setBlobSrc = setBlobSrc;
@@ -9044,6 +9112,7 @@ AnimationItem.prototype.setParams = function(params) {
     this.autoloadSegments = params.hasOwnProperty('autoloadSegments') ? params.autoloadSegments :  true;
     this.assetsPath = params.assetsPath;
     this.blobSrc = params.blobSrc || [];
+    this.blobContent = params.blobContent || '';
     if(params.animationData){
         this.configAnimation(params.animationData);
     }else if(params.path){
@@ -9169,6 +9238,8 @@ AnimationItem.prototype.imagesLoaded = function() {
 AnimationItem.prototype.preloadImages = function() {
     if (this.blobSrc.length) {
         this.imagePreloader.loadBlobAssets(this.blobSrc, this.animationData.assets, this.imagesLoaded.bind(this));
+    } else if (this.blobContent) {
+        this.imagePreloader.loadBlobContentAssets(this.blobContent, this.animationData.assets, this.imagesLoaded.bind(this));
     } else {
         this.imagePreloader.setAssetsPath(this.assetsPath);
         this.imagePreloader.setPath(this.path);
@@ -11726,7 +11797,7 @@ extendPrototype([BaseElement,TransformElement,HBaseElement,HSolidElement,Hierarc
 
 
 HImageElement.prototype.createContent = function(){
-    if (this.globalData.imageLoader.blobSrc && this.globalData.imageLoader.blobSrc.length) {
+    if (this.globalData.imageLoader.blobSrc && this.globalData.imageLoader.blobSrc.length || this.globalData.imageLoader.blobContent) {
         var img = {};
         var i = 0, len = this.globalData.imageLoader.images.length;
         while (i < len) {

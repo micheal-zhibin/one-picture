@@ -18,7 +18,7 @@ export default function App() {
                 <LayoutHeader />
 
                 <Layout.Content>
-                    <Route exact path={`/`} component={PageAbout} />
+                    <Route exact path={`/`} component={DemoLottie} />
                     <Route path={`/about`} component={PageAbout} />
                     <Route path={`/only-test`} component={OnlyTest} />
                     <Route path={`/demo-lottie`} component={DemoLottie} />
