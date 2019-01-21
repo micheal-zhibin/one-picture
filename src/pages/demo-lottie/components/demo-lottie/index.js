@@ -21,6 +21,39 @@ while(true) {
 }
 let blobContent = '';
 
+// 通过 xhr 请求获取 arraybuffer 形式的 blob 文件
+function getBlob(blobSrc) {
+    return new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', blobSrc, true);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function(e) {
+            if (this.status == 200) {
+                resolve(this.response)
+            }
+        }
+        xhr.onerror = function(e) {
+            reject(e);
+        }
+        xhr.send()
+    })
+}
+// 将 arraybuffer 转换为 string
+
+function ab2str(u,f) {
+    const b = new Blob([u]);
+    const r = new FileReader();
+    r.readAsText(b, 'utf-8');
+    r.onload = function (){if(f)f.call(null,r.result)}
+}
+// 合并两个 arraybuffer
+function appendBuffer(buffer1, buffer2) {
+    var tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+    tmp.set(new Uint8Array(buffer1), 0);
+    tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+    return tmp.buffer;
+};
+
 class RootComponent extends Component {
     constructor(props, context) {
         super(props, context);
@@ -87,8 +120,15 @@ class RootComponent extends Component {
     }
 
     output() {
-        this.props.loadProject({
-            animateData: JSON.stringify(animateData)
+        const that = this;
+        ab2str(blobContent.slice(4, 4 + new Int32Array(blobContent.slice(0, 4))[0]), (meta) => {
+            that.props.loadProject({
+                animateData: `var animateData = ${JSON.stringify(animateData)}`,
+                blobData: new Uint8Array(blobContent),
+                header: new Int32Array(blobContent.slice(0, 4))[0],
+                meta,
+                content: new Uint8Array(blobContent.slice(4 + new Int32Array(blobContent.slice(0, 4))[0]))
+            });
         });
     }
     
@@ -127,7 +167,20 @@ class RootComponent extends Component {
         this.props.loadAnimation()
     }
 
-    initAnimation(animateData) {
+    initBlobData() {
+        return Promise.all(blobSrc.map((v) => {
+            return getBlob(v)
+        })).then(function(result) {
+            blobContent = new ArrayBuffer();
+            for (var i = 0;i < result.length;i ++) {
+                blobContent = appendBuffer(blobContent, result[i]);
+            }
+            return blobContent;
+        });
+    }
+
+    initAnimation(animateData, blobContent) {
+        const that = this;
         const f = this.refs.animationbody;
         const childs = f.childNodes;
         for(var i = 0; i < childs.length; i++) {
@@ -140,31 +193,32 @@ class RootComponent extends Component {
             prerender: true,
             autoplay: true,
             animationData: animateData,
-            blobSrc: blobSrc,
             blobContent: blobContent
         };
-        this.anim = lottie.loadAnimation(animData);
-        this.anim.addEventListener('DOMLoaded', () => {
-            this.anim.pause();
+        that.anim = lottie.loadAnimation(animData);
+        that.anim.addEventListener('DOMLoaded', () => {
+            that.anim.pause();
             let framelist = [];
             for (let i = animateData.ip; i <= animateData.op; i ++) {
-                this.anim.renderer.renderFrame(i);
-                framelist.push(this.refs.animationbody.children[0].toDataURL('image/png'))
+                that.anim.renderer.renderFrame(i);
+                framelist.push(that.refs.animationbody.children[0].toDataURL('image/png'))
             }
-            this.setState({
+            that.setState({
                 framelist
             })
-            this.anim.play();
+            that.anim.play();
         });
-        window.onresize = this.anim.resize.bind(this.anim);
+        window.onresize = that.anim.resize.bind(that.anim);
     }
 
     componentDidMount() {
-        this.initAnimation(animateData);
+        this.initBlobData().then((result) => {
+            this.initAnimation(animateData, result);
+        })
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.data.projectFolder !== this.props.data.projectFolder) {
+        if (nextProps.data.projectFolder && nextProps.data.projectFolder !== this.props.data.projectFolder) {
             alert(`已经保存到${nextProps.data.projectFolder}`)
         }
         if (nextProps.data.animationData !== this.props.data.animationData) {
@@ -172,7 +226,12 @@ class RootComponent extends Component {
             animateData = JSON.parse(JSON.stringify(orignalanimateData));
             blobContent = nextProps.data.imgblob;
             blobSrc = [];
-            this.initAnimation(animateData);
+            this.setState({
+                frame: animateData.fr,
+                startframe: animateData.ip,
+                endframe: animateData.op,
+            })
+            this.initAnimation(animateData, blobContent);
         }
     }
 

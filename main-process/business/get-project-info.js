@@ -30,11 +30,32 @@ ipcMain.on(EVENT.PROJECT_INFO.REQ, (event, opts) => {
             }, opts);
             return;
         }
-
         const projectFolder = files[0];
-
+        const metaBuf = Buffer.from(opts.meta);
+        const header = Buffer.alloc(4);//记录元数据长度
+        header.writeInt32LE(opts.header);
+        const buffer = Buffer.concat([header, metaBuf, new Buffer(opts.content)]);
         // 获取 projects/generator/startkit.config.js 的信息
-        fs.writeFileSync(path.join(projectFolder, 'data.json'), opts.animateData, 'utf8');
+        fs.writeFileSync(path.join(projectFolder, 'data.js'), opts.animateData, 'utf8');
+        // fs.writeFileSync(path.join(projectFolder, 'img.blob'), buffer, 'utf8');
+        fs.writeFileSync(path.join(projectFolder, 'img.blob'), new Buffer(opts.blobData), 'utf8');
+        const src = path.join(process.cwd(), './src/template');
+        const dst = projectFolder;
+        let paths = fs.readdirSync(src); //同步读取当前目录
+        paths.forEach(function(path){
+            var _src=src+'/'+path;
+            var _dst=dst+'/'+path;
+            fs.stat(_src,function(err,stats){  //stats  该对象 包含文件属性
+                if(err)throw err;
+                if(stats.isFile()){ //如果是个文件则拷贝 
+                    let  readable=fs.createReadStream(_src);//创建读取流
+                    let  writable=fs.createWriteStream(_dst);//创建写入流
+                    readable.pipe(writable);
+                }else if(stats.isDirectory()){ //是目录则 递归 
+                    checkDirectory(_src,_dst,copy);
+                }
+            });
+        });
 
         // 获取 project.js 的信息
 

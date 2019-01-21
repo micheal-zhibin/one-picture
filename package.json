@@ -7,14 +7,15 @@
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "electron-start": "electron .",
-    "electron-start-dev": "electron . --debug"
+    "electron-start-dev": "electron . --debug",
+    "dist": "build",
+    "pack": "electron-packager . myClient --mac --out /Users/michealfeng/Documents --arch=x64 --app-version=0.0.1 --electron-version=3.0.9 --overwrite"
   },
   "dependencies": {
     "ant-design-pro": "^2.1.1",
     "antd": "^3.6.2",
     "classnames": "^2.2.6",
     "devtron": "^1.4.0",
-    "electron": "^3.0.9",
     "lodash": "^4.17.10",
     "osenv": "^0.1.5",
     "react": "16.2.0",
@@ -28,8 +29,27 @@
   },
   "devDependencies": {
     "babel-plugin-import": "^1.7.0",
+    "electron-builder": "^20.38.5",
     "electron-renderer-react-scripts-target": "^1.1.1",
+    "electron": "^3.0.9",
     "react-app-rewire-less": "^2.1.1",
     "react-app-rewired": "^1.5.2"
+  },
+  "build": {
+    "appId": "com.example.app",
+    "dmg": {
+      "contents": [
+        {
+          "x": 400,
+          "y": 700
+        },
+        {
+          "x": 400,
+          "y": 700,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
   }
 }

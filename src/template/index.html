@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh_CN">
+<head>
+    <title>lottie-animation</title>
+    <script src="./lottie.js"></script>
+    <script src="./data.js"></script>
+</head>
+<body>
+
+<div id="bodymovin" style="width: 160px;height: 160px;"></div>
+<script>
+    var animData = {
+        wrapper: document.getElementById('bodymovin'),
+        animType: 'html',
+        loop: true,
+        prerender: true,
+        autoplay: true,
+        animationData: animateData,
+        blobSrc: ['./img.blob']
+    };
+    var anim = bodymovin.loadAnimation(animData);
+</script>
+</body>
+</html>
